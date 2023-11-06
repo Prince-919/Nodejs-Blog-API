@@ -1,4 +1,7 @@
+import bcrypt from "bcryptjs";
+import { generateToken, getTokenFromHeader } from "../utils/index.js";
 import { UserModel } from "./../models/index.js";
+
 export const register = async (req, res) => {
   try {
     const { firstname, lastname, profilePhoto, email, password } = req.body;
@@ -9,13 +12,15 @@ export const register = async (req, res) => {
       });
     }
     // hashed password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     // create a new user
     const user = await UserModel.create({
       firstname,
       lastname,
       email,
-      password,
+      password: hashedPassword,
     });
     res.json({
       status: "success",
@@ -36,8 +41,10 @@ export const login = async (req, res) => {
         message: "Invalid login credentials",
       });
     }
-
-    const isMatchedPassword = await UserModel.findOne({ password });
+    const isMatchedPassword = await bcrypt.compare(
+      password,
+      userFound.password
+    );
     if (!isMatchedPassword) {
       return res.json({
         message: "Invalid login credentials",
@@ -46,17 +53,25 @@ export const login = async (req, res) => {
 
     res.json({
       status: "success",
-      data: "User LoggedIn",
+      data: {
+        firstname: userFound?.firstname,
+        lastname: userFound?.lastname,
+        email: userFound?.email,
+        isAdmin: userFound?.isAdmin,
+        token: generateToken(userFound?._id),
+      },
     });
   } catch (error) {
     res.json(error.message);
   }
 };
+
 export const users = async (req, res) => {
   try {
+    const user = await UserModel.findById(req.userAuthId);
     res.json({
       status: "success",
-      data: "User Profile",
+      data: user,
     });
   } catch (error) {
     res.json(error.message);
