@@ -1,15 +1,13 @@
 import bcrypt from "bcryptjs";
-import { generateToken, getTokenFromHeader } from "../utils/index.js";
+import { appError, generateToken, getTokenFromHeader } from "../utils/index.js";
 import { UserModel } from "./../models/index.js";
 
-export const register = async (req, res) => {
+export const register = async (req, res, next) => {
   try {
     const { firstname, lastname, profilePhoto, email, password } = req.body;
     const userFound = await UserModel.findOne({ email });
     if (userFound) {
-      return res.json({
-        message: "User already exists",
-      });
+      return next(appError(`User already ${email} exists`, 500));
     }
     // hashed password
     const salt = await bcrypt.genSalt(10);
@@ -27,7 +25,7 @@ export const register = async (req, res) => {
       data: user,
     });
   } catch (error) {
-    res.json(error.message);
+    next(new Error(error));
   }
 };
 
@@ -77,6 +75,7 @@ export const users = async (req, res) => {
     res.json(error.message);
   }
 };
+
 export const deleteUser = async (req, res) => {
   try {
     res.json({
@@ -87,6 +86,7 @@ export const deleteUser = async (req, res) => {
     res.json(error.message);
   }
 };
+
 export const updateUser = async (req, res) => {
   try {
     res.json({
