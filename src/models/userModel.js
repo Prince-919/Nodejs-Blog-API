@@ -61,6 +61,26 @@ const userSchema = new Schema(
         ref: "Post",
       },
     ],
+    blocked: [
+      {
+        type: ObjectId,
+        ref: "User",
+      },
+    ],
+    plan: [
+      {
+        type: String,
+        enum: ["Free", "Premium", "Pro"],
+        default: "Free",
+      },
+    ],
+    userAward: [
+      {
+        type: String,
+        enum: ["Bronze", "Silver", "Gold"],
+        default: "Bronze",
+      },
+    ],
   },
   { timestamps: true }
 );
