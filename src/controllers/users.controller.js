@@ -64,7 +64,7 @@ export const login = async (req, res) => {
   }
 };
 
-export const users = async (req, res) => {
+export const userProfile = async (req, res) => {
   try {
     const user = await UserModel.findById(req.userAuthId);
     res.json({
@@ -95,5 +95,33 @@ export const updateUser = async (req, res) => {
     });
   } catch (error) {
     res.json(error.message);
+  }
+};
+export const profilePhotoUpload = async (req, res, next) => {
+  try {
+    const userToUpdate = await UserModel.findById(req.userAuthId);
+    if (!userToUpdate) {
+      return next(appError(`${userToUpdate} - user not found`, 403));
+    }
+    if (userToUpdate?.isBlocked) {
+      return next(appError("Action not allowed, your account is blocked", 403));
+    }
+    if (req.file) {
+      await UserModel.findByIdAndUpdate(
+        req.userAuthId,
+        {
+          $set: {
+            profilePhoto: req?.file?.path,
+          },
+        },
+        { new: true }
+      );
+      res.json({
+        status: "success",
+        data: "you have successfully updated your profile photo",
+      });
+    }
+  } catch (error) {
+    next(appError(error.message, 500));
   }
 };
