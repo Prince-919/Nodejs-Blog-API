@@ -24,10 +24,7 @@ const userSchema = new Schema(
       type: String,
       required: [true, "Password is required"],
     },
-    postCount: {
-      type: Number,
-      default: 0,
-    },
+
     isBlocked: {
       type: Boolean,
       default: false,
@@ -40,7 +37,7 @@ const userSchema = new Schema(
       type: String,
       enum: ["Admin", "Guest", "Editor"],
     },
-    viewedBy: [
+    viewers: [
       {
         type: ObjectId,
         ref: "User",
@@ -58,10 +55,6 @@ const userSchema = new Schema(
         ref: "User",
       },
     ],
-    active: {
-      type: Boolean,
-      default: true,
-    },
     posts: [
       {
         type: ObjectId,
