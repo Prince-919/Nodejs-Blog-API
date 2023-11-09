@@ -1,6 +1,11 @@
 import bcrypt from "bcryptjs";
 import { appError, generateToken, getTokenFromHeader } from "../utils/index.js";
-import { UserModel } from "./../models/index.js";
+import {
+  CategoryModel,
+  CommentModel,
+  PostModel,
+  UserModel,
+} from "./../models/index.js";
 
 // REGISTER
 export const register = async (req, res, next) => {
@@ -26,29 +31,25 @@ export const register = async (req, res, next) => {
       data: user,
     });
   } catch (error) {
-    next(new Error(error));
+    next(appError(error.message));
   }
 };
 
 // LOGIN
-export const login = async (req, res) => {
+export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
     const userFound = await UserModel.findOne({ email });
     if (!userFound) {
-      return res.json({
-        message: "Invalid login credentials",
-      });
+      return next(appError("Invalid login credentials"));
     }
     const isMatchedPassword = await bcrypt.compare(
       password,
       userFound.password
     );
     if (!isMatchedPassword) {
-      return res.json({
-        message: "Invalid login credentials",
-      });
+      return next(appError("Invalid login credentials"));
     }
 
     res.json({
@@ -62,7 +63,7 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    res.json(error.message);
+    next(appError(error.message));
   }
 };
 // WHO VIEWED BY PROFILE
@@ -93,7 +94,7 @@ export const whoViewedByProfile = async (req, res, next) => {
       message: "You have successfully viewed this profile",
     });
   } catch (error) {
-    req.json(error.message);
+    next(appError(error.message));
   }
 };
 
@@ -127,7 +128,7 @@ export const following = async (req, res, next) => {
       }
     }
   } catch (error) {
-    res.json(error.message);
+    next(appError(error.message));
   }
 };
 
@@ -162,7 +163,7 @@ export const unFollow = async (req, res, next) => {
       }
     }
   } catch (error) {
-    req.json(error.message);
+    next(appError(error.message));
   }
 };
 
@@ -187,7 +188,7 @@ export const block = async (req, res, next) => {
       }
     }
   } catch (error) {
-    req.json(error.message);
+    next(appError(error.message));
   }
 };
 
@@ -214,7 +215,7 @@ export const unBlock = async (req, res, next) => {
       }
     }
   } catch (error) {
-    req.json(error.message);
+    next(appError(error.message));
   }
 };
 
@@ -232,7 +233,7 @@ export const adminBlock = async (req, res) => {
       message: "you have successfully blocked this user",
     });
   } catch (error) {
-    req.json(error.message);
+    next(appError(error.message));
   }
 };
 // admin UnBlock
@@ -249,7 +250,7 @@ export const adminUnBlock = async (req, res) => {
       message: "you have successfully unblocked this user",
     });
   } catch (error) {
-    req.json(error.message);
+    next(appError(error.message));
   }
 };
 
@@ -262,7 +263,7 @@ export const users = async (req, res) => {
       message: users,
     });
   } catch (error) {
-    req.json(error.message);
+    next(appError(error.message));
   }
 };
 
@@ -275,7 +276,7 @@ export const userProfile = async (req, res) => {
       data: user,
     });
   } catch (error) {
-    res.json(error.message);
+    next(appError(error.message));
   }
 };
 
@@ -287,19 +288,83 @@ export const deleteUser = async (req, res) => {
       data: "Delete User",
     });
   } catch (error) {
-    res.json(error.message);
+    next(appError(error.message));
   }
 };
 
 // UPDATE USER
-export const updateUser = async (req, res) => {
+export const updateUser = async (req, res, next) => {
   try {
+    const { email, firstname, lastname } = req.body;
+    if (email) {
+      const emailToken = await UserModel.findOne({ email });
+      if (emailToken) {
+        return next(appError("Email is token", 400));
+      }
+    }
+    const user = await UserModel.findByIdAndUpdate(
+      req.userAuthId,
+      {
+        firstname,
+        lastname,
+        email,
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
     res.json({
       status: "success",
-      data: "Update User",
+      data: user,
     });
   } catch (error) {
-    res.json(error.message);
+    next(appError(error.message));
+  }
+};
+// UPDATE Password
+export const updatePassword = async (req, res, next) => {
+  try {
+    const { password } = req.body;
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      await UserModel.findByIdAndUpdate(
+        req.userAuthId,
+        {
+          password: hashedPassword,
+        },
+        { new: true, runValidators: true }
+      );
+      res.json({
+        status: "success",
+        data: "Password has been changed successfully",
+      });
+    } else {
+      return next(appError("Please provide password field"));
+    }
+  } catch (error) {
+    next(appError(error.message));
+  }
+};
+// Delete User Account
+export const deleteUserAccount = async (req, res, next) => {
+  try {
+    // step 1 - find the user to be deleted
+    const userToDelete = await UserModel.findById(req.userAuthId);
+    // step 2 - find all posts to be deleted
+    await PostModel.deleteMany({ user: req.userAuthId });
+    // step 3 - Delete all comments of the user
+    await CommentModel.deleteMany({ user: req.userAuthId });
+    // step 3 - Delete all category of the user
+    await CategoryModel.deleteMany({ user: req.userAuthId });
+    await userToDelete.deleteOne({ user: req.userAuthId });
+    return res.json({
+      status: "success",
+      data: "your account has been deleted successfully",
+    });
+  } catch (error) {
+    next(appError(error.message));
   }
 };
 

@@ -1,30 +1,78 @@
-export const createCategory = async (req, res) => {
+import { appError } from "../utils/index.js";
+import { CategoryModel } from "./../models/index.js";
+
+// CREATE Category
+export const createCategory = async (req, res, next) => {
   try {
+    const { title } = req.body;
+    const category = await CategoryModel.create({
+      title,
+      user: req.userAuthId,
+    });
     res.json({
       status: "success",
-      data: "category created",
+      data: category,
     });
   } catch (error) {
-    res.json(error.message);
+    return next(appError(error.message));
   }
 };
-export const deleteCategory = async (req, res) => {
+
+// FETCH Categories
+export const fetchCategories = async (req, res, next) => {
   try {
+    const categories = await CategoryModel.find();
     res.json({
       status: "success",
-      data: "category deleted",
+      data: categories,
     });
   } catch (error) {
-    res.json(error.message);
+    return next(appError(error.message));
   }
 };
-export const updateCategory = async (req, res) => {
+
+// SINGLE Category
+export const singleCategory = async (req, res, next) => {
   try {
+    const category = await CategoryModel.findById(req.params.id);
     res.json({
       status: "success",
-      data: "category updated",
+      data: category,
     });
   } catch (error) {
-    res.json(error.message);
+    return next(appError(error.message));
+  }
+};
+
+// DELETE Category
+export const deleteCategory = async (req, res, next) => {
+  try {
+    await CategoryModel.findByIdAndDelete(req.params.id);
+    res.json({
+      status: "success",
+      data: "Category deleted successfully",
+    });
+  } catch (error) {
+    return next(appError(error.message));
+  }
+};
+
+// UPDATE Category
+export const updateCategory = async (req, res, next) => {
+  try {
+    const { title } = req.body;
+    const category = await CategoryModel.findByIdAndUpdate(
+      req.params.id,
+      {
+        title,
+      },
+      { new: true, runValidators: true }
+    );
+    res.json({
+      status: "success",
+      data: category,
+    });
+  } catch (error) {
+    return next(appError(error.message));
   }
 };

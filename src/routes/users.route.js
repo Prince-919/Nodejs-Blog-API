@@ -15,6 +15,8 @@ import {
   unBlock,
   adminBlock,
   adminUnBlock,
+  updatePassword,
+  deleteUserAccount,
 } from "../controllers/users.controller.js";
 import { authMiddleware } from "./../middlewares/index.js";
 import multer from "multer";
@@ -34,8 +36,9 @@ router.route("/unblock/:id").get(authMiddleware, unBlock);
 router.route("/admin-block/:id").put(authMiddleware, isAdmin, adminBlock);
 router.route("/admin-unblock/:id").put(authMiddleware, isAdmin, adminUnBlock);
 router.route("/profile").get(authMiddleware, userProfile);
-router.route("/:id").delete(deleteUser);
-router.route("/:id").put(updateUser);
+router.route("/").put(authMiddleware, updateUser);
+router.route("/update-password").put(authMiddleware, updatePassword);
+router.route("/delete-account").delete(authMiddleware, deleteUserAccount);
 router
   .route("/profile-photo-upload")
   .post(authMiddleware, upload.single("profile"), profilePhotoUpload);

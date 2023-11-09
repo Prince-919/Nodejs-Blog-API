@@ -1,8 +1,19 @@
+import { PostModel, UserModel } from "../models/index.js";
+
 export const createPost = async (req, res) => {
   try {
+    const { title, description } = req.body;
+    const author = await UserModel.findById(req.userAuthId);
+    const postCreated = await PostModel.create({
+      title,
+      description,
+      user: author._id,
+    });
+    author.posts.push(postCreated._id);
+    await author.save();
     res.json({
       status: "success",
-      data: "Post created",
+      data: postCreated,
     });
   } catch (error) {
     res.json(error.message);

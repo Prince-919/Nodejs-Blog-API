@@ -16,7 +16,7 @@ const postSchema = new Schema(
     category: {
       type: ObjectId,
       ref: "Category",
-      required: [true, "Post category is required"],
+      // required: [true, "Post category is required"],
     },
     numViews: [
       {
@@ -43,7 +43,7 @@ const postSchema = new Schema(
     },
     photo: {
       type: String,
-      required: [true, "Post Image is required"],
+      // required: [true, "Post Image is required"],
     },
   },
   { timestamps: true }

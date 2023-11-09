@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { PostModel } from "./index.js";
 
 const Schema = mongoose.Schema;
 const { ObjectId } = mongoose.Schema.Types;
@@ -67,13 +68,13 @@ const userSchema = new Schema(
         ref: "User",
       },
     ],
-    plan: [
-      {
-        type: String,
-        enum: ["Free", "Premium", "Pro"],
-        default: "Free",
-      },
-    ],
+    // plan: [
+    //   {
+    //     type: String,
+    //     enum: ["Free", "Premium", "Pro"],
+    //     default: "Free",
+    //   },
+    // ],
     userAward: [
       {
         type: String,
@@ -84,6 +85,99 @@ const userSchema = new Schema(
   },
   { timestamps: true, toJSON: { virtuals: true } }
 );
+
+// Hooks
+// pre-before record is save
+userSchema.pre("findOne", async function (next) {
+  this.populate({
+    path: "posts",
+  });
+  const userId = this._conditions._id;
+  const posts = await PostModel.find({ user: userId });
+  const lastPost = posts[posts.length - 1];
+  const lastPostDate = new Date(lastPost?.createdAt);
+  const lastPostDateStr = lastPostDate.toDateString();
+  userSchema.virtual("lastPostDate").get(function () {
+    return lastPostDateStr;
+  });
+
+  /*------- check if user is inactive for 30 days ---------*/
+
+  const currentDate = new Date();
+  const diff = currentDate - lastPostDate;
+  const diffInDate = diff / (1000 * 3600 * 24);
+  if (diffInDate < 30) {
+    userSchema.virtual("isInactive").get(function () {
+      return true;
+    });
+    await UserModel.findByIdAndUpdate(
+      userId,
+      {
+        isBlocked: true,
+      },
+      { new: true }
+    );
+  } else {
+    userSchema.virtual("isInactive").get(function () {
+      return false;
+    });
+    await UserModel.findByIdAndUpdate(
+      userId,
+      {
+        isBlocked: false,
+      },
+      { new: true }
+    );
+  }
+
+  // Last active Date
+  const daysAgo = Math.floor(diffInDate);
+  userSchema.virtual("lastActive").get(function () {
+    if (daysAgo <= 0) {
+      return "Today";
+    }
+    if (daysAgo === 1) {
+      return "Yesterday";
+    }
+    if (daysAgo > 1) {
+      return `${daysAgo} days ago`;
+    }
+  });
+
+  /*-----------------------------------------------
+   Update userAward based on the number of post
+  --------------------------------------------- */
+
+  const numberOfPosts = posts.length;
+  if (numberOfPosts < 10) {
+    await UserModel.findByIdAndUpdate(
+      userId,
+      {
+        userAward: "Bronze",
+      },
+      { new: true }
+    );
+  }
+  if (numberOfPosts > 10) {
+    await UserModel.findByIdAndUpdate(
+      userId,
+      {
+        userAward: "Silver",
+      },
+      { new: true }
+    );
+  }
+  if (numberOfPosts > 20) {
+    await UserModel.findByIdAndUpdate(
+      userId,
+      {
+        userAward: "Gold",
+      },
+      { new: true }
+    );
+  }
+  next();
+});
 
 // get fullName
 userSchema.virtual("fullname").get(function () {
