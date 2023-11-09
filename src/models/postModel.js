@@ -16,7 +16,7 @@ const postSchema = new Schema(
     category: {
       type: ObjectId,
       ref: "Category",
-      // required: [true, "Post category is required"],
+      required: [true, "Post category is required"],
     },
     numViews: [
       {
