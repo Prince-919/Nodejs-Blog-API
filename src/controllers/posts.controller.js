@@ -27,7 +27,7 @@ export const createPost = async (req, res, next) => {
   }
 };
 
-// Fetched All Post
+// Fetched All Posts
 export const allPost = async (req, res, next) => {
   try {
     const posts = await PostModel.find({})
