@@ -5,7 +5,7 @@ dotenv.config();
 import dbConnect from "./config/db.config.js";
 import { globalErrorHandle } from "./middlewares/index.js";
 
-// database
+// DB
 dbConnect();
 
 // global error handler middleware
