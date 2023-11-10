@@ -106,7 +106,7 @@ userSchema.pre("findOne", async function (next) {
   const currentDate = new Date();
   const diff = currentDate - lastPostDate;
   const diffInDate = diff / (1000 * 3600 * 24);
-  if (diffInDate < 30) {
+  if (diffInDate > 30) {
     userSchema.virtual("isInactive").get(function () {
       return true;
     });
