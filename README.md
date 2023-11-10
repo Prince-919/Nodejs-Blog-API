@@ -29,9 +29,46 @@ __server:__Node, Express, MongoDB, Mongoose, JWT
 
 # ENDPOINTS
 
-- [API Authentication](https://www.github.com/octokatherine)
+- [API Authentication](#API-Authentication)
     - [Register a new Api client](https://www.github.com/octokatherine)
     - [Login](https://www.github.com/octokatherine)
 - [Users](https://www.github.com/octokatherine)
     - [Get my profile](https://www.github.com/octokatherine)
     - [Get all users](https://www.github.com/octokatherine)
+    - [view a user profile count](https://www.github.com/octokatherine)
+    - [Following a user](https://www.github.com/octokatherine)
+    - [#UnFollowing-a-user](https://www.github.com/octokatherine)
+    - [Update user password](https://www.github.com/octokatherine)
+    - [Update your profile](https://www.github.com/octokatherine)
+    - [Block your profile](https://www.github.com/octokatherine)
+    - [Unblock another user](https://www.github.com/octokatherine)
+    - [Admin blocking a user](https://www.github.com/octokatherine)
+
+# API Authentication
+
+Some endpoints may require authentication for example. To create a create/delete/update post, you need to register your API client and obtain an access token
+
+The endpoints that reqrure authentication expect a bearer token send in the `Authorization header` 
+
+__Example__:
+
+`Authorzation: Bearer YOUR TOKEN`
+
+## Register a new APi client
+```http
+POST /api/v1/users/register
+```
+The request body to be in JSON format.
+
+
+
+
+
+
+
+
+
+
+
+
+
