@@ -62,19 +62,25 @@ const userSchema = new Schema(
         ref: "Post",
       },
     ],
+    comments: [
+      {
+        type: ObjectId,
+        ref: "Comment",
+      },
+    ],
     blocked: [
       {
         type: ObjectId,
         ref: "User",
       },
     ],
-    // plan: [
-    //   {
-    //     type: String,
-    //     enum: ["Free", "Premium", "Pro"],
-    //     default: "Free",
-    //   },
-    // ],
+    plan: [
+      {
+        type: String,
+        enum: ["Free", "Premium", "Pro"],
+        default: "Free",
+      },
+    ],
     userAward: [
       {
         type: String,

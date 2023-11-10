@@ -1,16 +1,15 @@
 import express from "express";
+import { authMiddleware } from "./../middlewares/index.js";
 import {
   createComment,
   deleteComment,
-  singleComment,
   updateComment,
 } from "./../controllers/comments.controller.js";
 
 const router = express.Router();
 
-router.route("/").post(createComment);
-router.route("/:id").get(singleComment);
-router.route("/:id").delete(deleteComment);
-router.route("/:id").put(updateComment);
+router.route("/:id").post(authMiddleware, createComment);
+router.route("/:id").delete(authMiddleware, deleteComment);
+router.route("/:id").put(authMiddleware, updateComment);
 
 export default router;

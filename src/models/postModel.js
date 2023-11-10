@@ -36,6 +36,12 @@ const postSchema = new Schema(
         ref: "User",
       },
     ],
+    comments: [
+      {
+        type: ObjectId,
+        ref: "Comment",
+      },
+    ],
     user: {
       type: ObjectId,
       ref: "User",
